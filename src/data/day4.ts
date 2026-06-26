@@ -36,6 +36,8 @@ export const day4: Day = {
         { id: "ch-normal", text: "유명인이 나오므로 진짜로 판단", isCorrect: false, isBest: false, hint: "유명인 등장이 곧 진짜는 아니에요. 공식 영상과 비교해 보세요." },
       ],
       learning: {
+        cardTitle: "선물하기 사칭",
+        summary: "발신자 이름은 누구나 사칭할 수 있다",
         realCase: "유명인을 사칭한 딥페이크 투자 사기가 급증하고 있습니다. AI로 얼굴과 음성을 합성해 신뢰를 악용하며, 입모양·눈 깜빡임 등에서 미세한 흔적이 남습니다.",
         prevention: "1) 공식 채널에 같은 발언이 있는지 교차 확인  2) 입모양·표정의 부자연스러움 관찰  3) '보장된 고수익'은 일단 의심",
         reference: "방송통신위원회 딥페이크 대응 가이드",

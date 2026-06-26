@@ -7,6 +7,7 @@ import Briefing from "./pages/Briefing";
 import Analysis from "./pages/Analysis";
 import Result from "./pages/Result";
 import Learning from "./pages/Learning";
+import Collection from "./pages/Collection";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/analysis/:caseId" element={<Analysis />} />
         <Route path="/result/:caseId" element={<Result />} />
         <Route path="/learning/:caseId" element={<Learning />} />
+        <Route path="/collection" element={<Collection />} />
       </Routes>
     </BrowserRouter>
   );

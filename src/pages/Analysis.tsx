@@ -128,9 +128,13 @@ function Analysis() {
               <p className="text-slate-600 text-sm">아직 발견한 단서가 없습니다.</p>
             )}
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-700">
+          <div className="mt-4 pt-3 border-t border-slate-700 space-y-1">
             <p className="text-slate-400 text-sm">
+              발견한 단서 <span className="text-cyan-400 font-bold">{foundIds.length}</span> / {c.evidences.length}
+            </p>
+            <p className="text-slate-500 text-xs">
               핵심 단서 <span className="text-amber-400 font-bold">{keyFound}</span> / {keyTotal}
+              {keyFound >= keyTotal && <span className="text-emerald-400"> ✓ 충분</span>}
             </p>
           </div>
         </div>

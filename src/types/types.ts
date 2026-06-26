@@ -63,6 +63,8 @@ export type VictimScene = {
 };
 
 export type Learning = {
+  cardTitle: string;    // 카드 제목 (예: "택배 스미싱")
+  summary: string;      // 카드 앞면 한 줄 요약
   realCase: string;
   prevention: string;
   reference: string;
@@ -104,6 +106,7 @@ export type CaseRecord = {
 export type PlayerProgress = {
   nickname: string;
   caseRecords: CaseRecord[];
-  unlockedDays: number[]; // Day 단위 잠금
+  unlockedDays: number[];
+  collectedCards: string[];   // 수집한 카드 = caseId 목록
   abilities: Record<Ability, number>;
 };

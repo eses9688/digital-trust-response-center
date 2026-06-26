@@ -46,6 +46,8 @@ export const day2: Day = {
         { id: "ch-normal", text: "은행 공식 메일로 판단", isCorrect: false, isBest: false, hint: "발신 도메인을 다시 확인해 보세요. 공식 도메인과 미묘하게 달라요." },
       ],
       learning: {
+        cardTitle: "정부지원금 사칭",
+        summary: "조건 없는 거액 지급과 긴급 문구는 사기 신호",
         realCase: "금융기관 사칭 피싱 메일은 공식과 거의 똑같은 디자인에, 도메인만 미묘하게 다릅니다(kbstar.com vs kb-star.net). 시간 압박 문구로 판단을 흐립니다.",
         prevention: "1) 발신 도메인을 공식 사이트와 글자 단위로 비교  2) 메일 속 링크 대신 공식 앱·홈페이지로 직접 접속  3) '긴급', '정지', '삭제' 같은 압박 문구를 경계",
         reference: "금융보안원 피싱 메일 대응 안내",

@@ -153,10 +153,13 @@ function Dashboard() {
         </button>
       </div>
 
-      {/* 초기화 */}
-      <div className="mt-10 pt-4 border-t border-slate-800">
+      {/* 하단 메뉴 */}
+      <div className="mt-10 pt-4 border-t border-slate-800 flex items-center justify-between">
+        <Button variant="ghost" onClick={() => navigate("/collection")}>
+          📚 학습 카드 도감
+        </Button>
         <Button variant="danger" onClick={handleReset}>
-          🗑 진행 기록 초기화 (개발용)
+          🗑 초기화
         </Button>
       </div>
     </Screen>
