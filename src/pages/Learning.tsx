@@ -1,16 +1,17 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { getStage } from "../data/stages";
+import { getCase } from "../data/days";
 import Screen from "../components/Screen";
 import Button from "../components/Button";
 
 function Learning() {
   const navigate = useNavigate();
-  const { stageId } = useParams();
-  const stage = getStage(Number(stageId));
+  const { caseId } = useParams();
+  const c = getCase(caseId ?? "");
 
-  if (!stage) return <Screen><p>없는 스테이지입니다.</p></Screen>;
+  if (!c) return <Screen><p>없는 사건입니다.</p></Screen>;
 
-  const { realCase, prevention, reference } = stage.learning;
+  const { realCase, prevention, reference } = c.learning;
+  const dayId = c.id.split("-")[0].replace("d", "");
 
   return (
     <Screen>
@@ -29,8 +30,8 @@ function Learning() {
 
       <p className="text-slate-500 text-xs mb-8">출처: {reference}</p>
 
-      <Button onClick={() => navigate("/dashboard")} className="w-full">
-        대시보드로 돌아가기
+      <Button onClick={() => navigate(`/day/${dayId}`)} className="w-full">
+        사건 목록으로 돌아가기
       </Button>
     </Screen>
   );

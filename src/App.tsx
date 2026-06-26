@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Splash from "./pages/Splash";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import DayView from "./pages/DayView";
 import Briefing from "./pages/Briefing";
 import Analysis from "./pages/Analysis";
 import Result from "./pages/Result";
@@ -14,10 +15,11 @@ function App() {
         <Route path="/" element={<Splash />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/briefing/:stageId" element={<Briefing />} />
-        <Route path="/analysis/:stageId" element={<Analysis />} />
-        <Route path="/result/:stageId" element={<Result />} />
-        <Route path="/learning/:stageId" element={<Learning />} />
+        <Route path="/day/:dayId" element={<DayView />} />
+        <Route path="/briefing/:caseId" element={<Briefing />} />
+        <Route path="/analysis/:caseId" element={<Analysis />} />
+        <Route path="/result/:caseId" element={<Result />} />
+        <Route path="/learning/:caseId" element={<Learning />} />
       </Routes>
     </BrowserRouter>
   );

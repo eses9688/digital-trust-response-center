@@ -26,7 +26,8 @@ export type Evidence = {
 export type Choice = {
   id: string;
   text: string;
-  isBest: boolean;
+  isCorrect: boolean; // 사건 해결(⭐) 판정 — 정답 대응인가
+  isBest: boolean; // 최적 대응(⭐⭐⭐) 판정 — 가장 좋은 선택인가
   hint: string;
 };
 
@@ -35,10 +36,26 @@ export type MessageSegment =
   | { kind: "text"; text: string }
   | { kind: "clue"; text: string; evidenceId: string };
 
+// 비교 영상 한 쪽
+export type CompareSource = {
+  label: string; // "공식 채널 인터뷰" / "문제의 광고 영상"
+  caption: string; // 영상 자리에 들어갈 설명 (나중에 이미지로 교체)
+  isFake: boolean; // 이쪽이 가짜인가
+};
+
+// 비교에서 찾아야 할 차이점 (클릭 단서)
+export type CompareClue = {
+  evidenceId: string; // 연결되는 evidence
+  label: string; // "입모양" / "눈 깜빡임"
+  normalDesc: string; // 정상 쪽 설명
+  fakeDesc: string; // 가짜 쪽 설명 (이게 수상함)
+};
+
 export type VictimScene = {
   format: "sms" | "kakao" | "email" | "video" | "sns";
-  segments?: MessageSegment[];        // 메시지형 (Stage 1~3) — 선택적으로 변경
-  compare?: {                          // 비교형 (Stage 4) — 새로 추가
+  segments?: MessageSegment[]; // 메시지형 (Stage 1~3)
+  compare?: {
+    // 비교형 (Stage 4)
     left: CompareSource;
     right: CompareSource;
     clues: CompareClue[];
@@ -51,10 +68,11 @@ export type Learning = {
   reference: string;
 };
 
-export type Stage = {
-  id: number;
+// 사건 하나 (기존 Stage)
+export type Case = {
+  id: string; // "d1-c1" 같은 고유 id
   title: string;
-  difficulty: "beginner" | "intermediate" | "advanced";
+  difficulty: "easy" | "medium" | "hard";
   category: string;
   briefing: string;
   victim: VictimScene;
@@ -62,15 +80,21 @@ export type Stage = {
   choices: Choice[];
   learning: Learning;
   starWeights: Ability[];
-  starRules: {
-    keyEvidenceNeeded: number;
-  };
+  starRules: { keyEvidenceNeeded: number };
+};
+
+// Day (Module) — 사건 묶음
+export type Day = {
+  id: number; // 1~7
+  title: string; // "의심 신호 탐지"
+  goal: string; // 교육 목표
+  cases: Case[]; // 6개 (Day 7은 1개)
 };
 
 // ===== 플레이 기록 타입 (유저 데이터) =====
 
-export type StageRecord = {
-  stageId: number;
+export type CaseRecord = {
+  caseId: string; // "d1-c1"
   cleared: boolean;
   foundKeyEvidence: boolean;
   bestResponse: boolean;
@@ -79,22 +103,7 @@ export type StageRecord = {
 
 export type PlayerProgress = {
   nickname: string;
-  stageRecords: StageRecord[];
-  unlockedStages: number[];
+  caseRecords: CaseRecord[];
+  unlockedDays: number[]; // Day 단위 잠금
   abilities: Record<Ability, number>;
-};
-
-// 비교 영상 한 쪽
-export type CompareSource = {
-  label: string;           // "공식 채널 인터뷰" / "문제의 광고 영상"
-  caption: string;         // 영상 자리에 들어갈 설명 (나중에 이미지로 교체)
-  isFake: boolean;         // 이쪽이 가짜인가
-};
-
-// 비교에서 찾아야 할 차이점 (클릭 단서)
-export type CompareClue = {
-  evidenceId: string;      // 연결되는 evidence
-  label: string;           // "입모양" / "눈 깜빡임"
-  normalDesc: string;      // 정상 쪽 설명
-  fakeDesc: string;        // 가짜 쪽 설명 (이게 수상함)
 };

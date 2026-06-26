@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getStage } from "../data/stages";
+import { getCase } from "../data/days";
 import Screen from "../components/Screen";
 
 const formatLabel: Record<string, string> = {
@@ -9,35 +9,33 @@ const formatLabel: Record<string, string> = {
 
 function Analysis() {
   const navigate = useNavigate();
-  const { stageId } = useParams();
-  const stage = getStage(Number(stageId));
+  const { caseId } = useParams();
+  const c = getCase(caseId ?? "");
 
   const [foundIds, setFoundIds] = useState<string[]>([]);
 
-  if (!stage) return <Screen><p>없는 스테이지입니다.</p></Screen>;
+  if (!c) return <Screen><p>없는 사건입니다.</p></Screen>;
 
   function handleClueClick(evidenceId: string) {
     if (!foundIds.includes(evidenceId)) setFoundIds([...foundIds, evidenceId]);
   }
 
   function handleChoice(choiceId: string) {
-    navigate(`/result/${stage!.id}`, { state: { choiceId, viewedIds: foundIds } });
+    navigate(`/result/${c!.id}`, { state: { choiceId, viewedIds: foundIds } });
   }
 
-  const keyTotal = stage.evidences.filter((ev) => ev.isKey).length;
-  const keyFound = stage.evidences.filter((ev) => ev.isKey && foundIds.includes(ev.id)).length;
-
-  const victim = stage.victim;
+  const keyTotal = c.evidences.filter((ev) => ev.isKey).length;
+  const keyFound = c.evidences.filter((ev) => ev.isKey && foundIds.includes(ev.id)).length;
+  const victim = c.victim;
 
   return (
     <Screen>
       <p className="text-cyan-400 text-xs tracking-[0.2em] mb-2">ANALYSIS</p>
-      <h1 className="text-2xl font-bold text-slate-100 mb-6">{stage.title}</h1>
+      <h1 className="text-2xl font-bold text-slate-100 mb-6">{c.title}</h1>
 
       <div className="flex flex-col md:flex-row gap-4 mb-8">
-        {/* 왼쪽: 증거 영역 (형식에 따라 분기) */}
         <div className="flex-[1.3]">
-          {/* === 메시지형 (Stage 1~3) === */}
+          {/* 메시지형 */}
           {victim.segments && (
             <div className="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden">
               <div className="bg-slate-800 px-4 py-3 border-b border-slate-700 flex items-center gap-2">
@@ -69,7 +67,7 @@ function Analysis() {
             </div>
           )}
 
-          {/* === 비교형 (Stage 4) === */}
+          {/* 비교형 */}
           {victim.compare && (
             <div>
               <div className="grid grid-cols-2 gap-3 mb-4">
@@ -78,7 +76,6 @@ function Analysis() {
                     <div className="bg-slate-800 px-3 py-2 border-b border-slate-700">
                       <span className="text-slate-300 text-xs">{src.label}</span>
                     </div>
-                    {/* 영상 자리 (나중에 이미지로 교체) */}
                     <div className="aspect-video bg-slate-950 flex items-center justify-center p-3">
                       <span className="text-slate-600 text-xs text-center">{src.caption}</span>
                     </div>
@@ -86,7 +83,6 @@ function Analysis() {
                 ))}
               </div>
 
-              {/* 체크포인트: 클릭해서 두 영상 비교 */}
               <p className="text-slate-400 text-xs tracking-[0.2em] mb-2">체크 포인트</p>
               <div className="space-y-2">
                 {victim.compare.clues.map((clue) => {
@@ -115,11 +111,11 @@ function Analysis() {
           )}
         </div>
 
-        {/* 오른쪽: 수사 노트 (공통) */}
+        {/* 수사 노트 */}
         <div className="flex-1 bg-slate-900 border border-slate-700 rounded-2xl p-4">
           <p className="text-cyan-400 text-xs tracking-[0.2em] mb-3">수사 노트</p>
           <div className="space-y-2">
-            {stage.evidences.map((ev) => {
+            {c.evidences.map((ev) => {
               if (!foundIds.includes(ev.id)) return null;
               return (
                 <div key={ev.id} className="bg-cyan-950/50 border border-cyan-800 rounded-xl p-3">
@@ -140,10 +136,9 @@ function Analysis() {
         </div>
       </div>
 
-      {/* 판단 (공통) */}
       <p className="text-slate-400 text-xs tracking-[0.2em] mb-3">판단</p>
       <div className="space-y-2">
-        {stage.choices.map((ch) => (
+        {c.choices.map((ch) => (
           <button
             key={ch.id}
             onClick={() => handleChoice(ch.id)}

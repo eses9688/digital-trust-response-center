@@ -1,4 +1,4 @@
-import type { PlayerProgress, StageRecord, Ability } from "../types/types";
+import type { PlayerProgress, CaseRecord, Ability } from "../types/types";
 
 const STORAGE_KEY = "dtrc-progress";
 
@@ -6,8 +6,8 @@ const STORAGE_KEY = "dtrc-progress";
 function createInitialProgress(nickname: string): PlayerProgress {
   return {
     nickname,
-    stageRecords: [],
-    unlockedStages: [1], // Stage 1만 열린 상태로 시작
+    caseRecords: [],
+    unlockedDays: [1], // Day 1만 열린 상태로 시작
     abilities: {
       threatDetection: 0,
       verification: 0,
@@ -37,37 +37,52 @@ export function startNewGame(nickname: string): PlayerProgress {
   return fresh;
 }
 
-export function recordStageResult(
-  record: StageRecord,
+// 진행 기록 초기화 (개발용)
+export function resetProgress(): void {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+// 사건 결과 기록 (최고 별만 유지)
+export function recordCaseResult(
+  record: CaseRecord,
   earnedAbilities: Ability[]
 ): PlayerProgress {
   const progress = loadProgress() ?? startNewGame("분석관");
 
-  // 기존 기록 찾기 (최고 별만 유지)
-  const existing = progress.stageRecords.find((r) => r.stageId === record.stageId);
+  const existing = progress.caseRecords.find((r) => r.caseId === record.caseId);
   if (!existing || record.stars > existing.stars) {
-    progress.stageRecords = progress.stageRecords.filter((r) => r.stageId !== record.stageId);
-    progress.stageRecords.push(record);
-  }
+    progress.caseRecords = progress.caseRecords.filter((r) => r.caseId !== record.caseId);
+    progress.caseRecords.push(record);
 
-  // 클리어 시 다음 Stage 해금 (별 1개 이상)
-  if (record.stars >= 1) {
-    const next = record.stageId + 1;
-    if (!progress.unlockedStages.includes(next) && next <= 7) {
-      progress.unlockedStages.push(next);
+    // 능력치는 '최고 기록 갱신 시'에만, 별 차이만큼 누적
+    const prevStars = existing?.stars ?? 0;
+    const gained = record.stars - prevStars;
+    for (const ability of earnedAbilities) {
+      progress.abilities[ability] += gained * 10;
     }
-  }
-
-  // 능력치 누적 (별 1개당 해당 능력 +10)
-  for (const ability of earnedAbilities) {
-    progress.abilities[ability] += record.stars * 10;
   }
 
   saveProgress(progress);
   return progress;
 }
 
-// clr 함수
-export function resetProgress(): void {
-  localStorage.removeItem(STORAGE_KEY);
+// Day 클리어 여부 판정 + 다음 Day 해금
+// (Day의 모든 사건을 별 1개 이상으로 깨면 다음 Day 오픈)
+export function checkDayClear(dayId: number, caseIds: string[]): PlayerProgress {
+  const progress = loadProgress() ?? startNewGame("분석관");
+
+  const allCleared = caseIds.every((cid) => {
+    const rec = progress.caseRecords.find((r) => r.caseId === cid);
+    return rec && rec.stars >= 1;
+  });
+
+  if (allCleared) {
+    const nextDay = dayId + 1;
+    if (!progress.unlockedDays.includes(nextDay) && nextDay <= 7) {
+      progress.unlockedDays.push(nextDay);
+      saveProgress(progress);
+    }
+  }
+
+  return progress;
 }
