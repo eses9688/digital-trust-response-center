@@ -13,7 +13,7 @@ function Splash() {
         </p>
         <h1 className="text-4xl font-bold text-slate-100 mb-2">디지털 신뢰 대응 센터</h1>
         <p className="text-slate-400 mb-10">Interactive Cybercrime Response Simulation</p>
-        <Button onClick={() => navigate("/login")} className="px-8">
+        <Button onClick={() => navigate("/dashboard")} className="px-8">
           시작하기
         </Button>
       </div>

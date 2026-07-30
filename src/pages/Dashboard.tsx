@@ -1,166 +1,112 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loadProgress, resetProgress } from "../storage/storage";
-import { days } from "../data/days";
+import { episodeCatalog } from "../data/episodeCatalog";
+import { tips } from "../data/tips";
 import Screen from "../components/Screen";
 import Button from "../components/Button";
 
+function stars(difficulty: number): string {
+  return "★".repeat(difficulty) + "☆".repeat(3 - difficulty);
+}
+
 function Dashboard() {
   const navigate = useNavigate();
-  const progress = loadProgress();
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [tipIndex, setTipIndex] = useState(0);
 
-  const unlocked = progress?.unlockedDays ?? [1];
-  const totalStars = progress?.caseRecords?.reduce((sum, r) => sum + r.stars, 0) ?? 0;
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTipIndex((current) => {
+        if (tips.length <= 1) return current;
+        let next = current;
+        while (next === current) {
+          next = Math.floor(Math.random() * tips.length);
+        }
+        return next;
+      });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const clearedDays = days.filter((d) =>
-    d.cases.every((c) => {
-      const rec = progress?.caseRecords?.find((r) => r.caseId === c.id);
-      return rec && rec.stars >= 1;
-    })
-  ).length;
-
-  // 캐러셀: 현재 보고 있는 Day 인덱스 (해금된 마지막 Day에서 시작)
-  const lastUnlocked = Math.max(...unlocked);
-  const [current, setCurrent] = useState(
-    Math.max(0, days.findIndex((d) => d.id === lastUnlocked))
-  );
-
-  const day = days[current];
-  const isUnlocked = unlocked.includes(day.id);
-  const clearedCases = day.cases.filter((c) => {
-    const rec = progress?.caseRecords?.find((r) => r.caseId === c.id);
-    return rec && rec.stars >= 1;
-  }).length;
-
-  function prev() {
-    setCurrent((i) => Math.max(0, i - 1));
-  }
-  function next() {
-    setCurrent((i) => Math.min(days.length - 1, i + 1));
-  }
-
-  function handleReset() {
-    if (window.confirm("모든 진행 기록을 초기화할까요? (개발용)")) {
-      resetProgress();
-      window.location.reload();
-    }
-  }
+  const selected = episodeCatalog[selectedIndex];
 
   return (
     <Screen>
-      {/* 헤더 */}
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-cyan-400 text-xs tracking-[0.2em]">CASE BOARD</p>
-        <p className="text-slate-400 text-sm">분석관: {progress?.nickname ?? "게스트"}</p>
-      </div>
-      <h1 className="text-2xl font-bold text-slate-100 mb-6">사건 관리 시스템</h1>
-
-      {/* 상태 요약 */}
-      <div className="grid grid-cols-3 gap-3 mb-8">
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-          <p className="text-slate-400 text-xs mb-1">획득한 별</p>
-          <p className="text-amber-400 text-xl font-bold">★ {totalStars}</p>
+      <div className="flex flex-col gap-10">
+        <div className="text-center">
+          <p className="text-slate-100 font-bold text-2xl tracking-widest">DTRC</p>
+          <p className="text-cyan-400 text-sm mt-1">Digital Trust Response Center</p>
+          <p className="text-slate-500 text-sm mt-4">
+            디지털 사고를 안전하게 경험하고
+            <br />
+            예방 방법을 배우는 플랫폼입니다.
+          </p>
         </div>
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-          <p className="text-slate-400 text-xs mb-1">완료한 DAY</p>
-          <p className="text-cyan-400 text-xl font-bold">{clearedDays} / 7</p>
-        </div>
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-          <p className="text-slate-400 text-xs mb-1">진행률</p>
-          <p className="text-slate-100 text-xl font-bold">{Math.round((clearedDays / 7) * 100)}%</p>
-        </div>
-      </div>
 
-      <p className="text-slate-400 text-xs tracking-[0.2em] mb-3">DAY 선택</p>
+        <div className="flex flex-col gap-4">
+          <p className="text-slate-400 text-sm text-center">Episode Selection</p>
+          <div className="flex items-center gap-3 justify-center">
+            <button
+              onClick={() => setSelectedIndex((i) => Math.max(0, i - 1))}
+              disabled={selectedIndex === 0}
+              className="text-slate-400 text-2xl px-2 disabled:opacity-20 cursor-pointer disabled:cursor-default"
+            >
+              ◀
+            </button>
 
-      {/* 캐러셀 */}
-      <div className="flex items-center gap-3">
-        {/* 이전 버튼 */}
-        <button
-          onClick={prev}
-          disabled={current === 0}
-          className="text-3xl text-slate-500 hover:text-cyan-400 disabled:opacity-20
-                     disabled:hover:text-slate-500 cursor-pointer disabled:cursor-not-allowed px-1"
-        >
-          ‹
-        </button>
-
-        {/* 가운데 메인 카드 */}
-        <div className="flex-1">
-          <div
-            className={`rounded-2xl p-6 border-2 transition-all duration-200 ${
-              isUnlocked
-                ? "bg-slate-800 border-cyan-600"
-                : "bg-slate-900 border-slate-700"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <span
-                className={`text-sm font-mono px-3 py-1 rounded ${
-                  isUnlocked ? "bg-cyan-500/20 text-cyan-300" : "bg-slate-800 text-slate-500"
-                }`}
-              >
-                {isUnlocked ? `DAY ${day.id}` : `🔒 DAY ${day.id}`}
-              </span>
-              {isUnlocked && (
-                <span className="text-slate-400 text-xs">
-                  사건 <span className="text-cyan-400 font-bold">{clearedCases}</span> / {day.cases.length}
-                </span>
-              )}
+            <div className="flex gap-4">
+              {episodeCatalog.map((entry, index) => {
+                const isSelected = index === selectedIndex;
+                return (
+                  <button
+                    key={entry.id}
+                    onClick={() => setSelectedIndex(index)}
+                    className={`flex flex-col items-center gap-2 w-28 py-6 rounded-xl border cursor-pointer transition-all ${
+                      isSelected
+                        ? "border-cyan-500 bg-cyan-950/30"
+                        : "border-slate-800 bg-slate-900"
+                    } ${entry.locked ? "opacity-50" : ""}`}
+                  >
+                    <span className="text-3xl">{entry.icon}</span>
+                    <span className="text-slate-100 text-sm font-bold">
+                      {entry.title}
+                    </span>
+                    <span className="text-amber-400 text-xs">
+                      {stars(entry.difficulty)}
+                    </span>
+                    {entry.locked && (
+                      <span className="text-slate-500 text-xs">준비중</span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
-            <h2 className={`text-xl font-bold mb-2 ${isUnlocked ? "text-slate-100" : "text-slate-500"}`}>
-              {day.title}
-            </h2>
-            <p className="text-slate-400 text-sm mb-6 min-h-[2.5rem]">{day.goal}</p>
-
-            {isUnlocked ? (
-              <Button onClick={() => navigate(`/day/${day.id}`)} className="w-full">
-                입장하기 →
-              </Button>
-            ) : (
-              <div className="w-full text-center py-3 rounded-lg bg-slate-800 border border-slate-700 text-slate-500 text-sm">
-                이전 DAY를 완료하면 열립니다
-              </div>
-            )}
+            <button
+              onClick={() =>
+                setSelectedIndex((i) => Math.min(episodeCatalog.length - 1, i + 1))
+              }
+              disabled={selectedIndex === episodeCatalog.length - 1}
+              className="text-slate-400 text-2xl px-2 disabled:opacity-20 cursor-pointer disabled:cursor-default"
+            >
+              ▶
+            </button>
           </div>
 
-          {/* 페이지 인디케이터 */}
-          <div className="flex justify-center gap-1.5 mt-4">
-            {days.map((d, i) => (
-              <span
-                key={d.id}
-                className={`w-2 h-2 rounded-full transition ${
-                  i === current
-                    ? "bg-cyan-400"
-                    : unlocked.includes(d.id)
-                    ? "bg-slate-500"
-                    : "bg-slate-700"
-                }`}
-              />
-            ))}
+          <div className="flex justify-center mt-2">
+            {selected.locked ? (
+              <Button variant="ghost" className="opacity-50 cursor-default">
+                준비중입니다
+              </Button>
+            ) : (
+              <Button onClick={() => navigate(`/episode/${selected.id}`)}>
+                체험 시작하기
+              </Button>
+            )}
           </div>
         </div>
 
-        {/* 다음 버튼 */}
-        <button
-          onClick={next}
-          disabled={current === days.length - 1}
-          className="text-3xl text-slate-500 hover:text-cyan-400 disabled:opacity-20
-                     disabled:hover:text-slate-500 cursor-pointer disabled:cursor-not-allowed px-1"
-        >
-          ›
-        </button>
-      </div>
-
-      {/* 하단 메뉴 */}
-      <div className="mt-10 pt-4 border-t border-slate-800 flex items-center justify-between">
-        <Button variant="ghost" onClick={() => navigate("/collection")}>
-          📚 학습 카드 도감
-        </Button>
-        <Button variant="danger" onClick={handleReset}>
-          🗑 초기화
-        </Button>
+        <p className="text-slate-500 text-xs text-center">{tips[tipIndex]}</p>
       </div>
     </Screen>
   );
