@@ -1,14 +1,16 @@
 import type { InboxScene } from "../types/types";
 import Screen from "../components/Screen";
+import WindowTitleBar from "../components/WindowTitleBar";
 
 type Props = {
   scene: InboxScene;
   onAdvance: (nextSceneId: string) => void;
+  onClose: () => void;
 };
 
-function InboxSceneView({ scene, onAdvance }: Props) {
+function InboxSceneView({ scene, onAdvance, onClose }: Props) {
   return (
-    <Screen>
+    <Screen monitor topBar={<WindowTitleBar title="메일" onClose={onClose} />}>
       <div className="flex flex-col gap-4">
         <p className="text-slate-100 font-bold text-lg">받은편지함</p>
         <div className="flex flex-col border-t border-slate-800">

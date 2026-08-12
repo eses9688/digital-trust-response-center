@@ -1,14 +1,20 @@
 import type { ReadingScene } from "../types/types";
 import Screen from "../components/Screen";
+import WindowTitleBar from "../components/WindowTitleBar";
 
 type Props = {
   scene: ReadingScene;
   onAdvance: (nextSceneId: string) => void;
+  onBack?: () => void;
+  onClose: () => void;
 };
 
-function ReadingSceneView({ scene, onAdvance }: Props) {
+function ReadingSceneView({ scene, onAdvance, onBack, onClose }: Props) {
   return (
-    <Screen>
+    <Screen
+      monitor
+      topBar={<WindowTitleBar title="메일" onBack={onBack} onClose={onClose} />}
+    >
       <div className="flex flex-col gap-4">
         <div className="flex justify-end gap-2">
           <button

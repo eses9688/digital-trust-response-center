@@ -38,6 +38,20 @@ function DTRCSceneView({ scene, onAdvance }: Props) {
             </button>
           ))}
         </div>
+
+        {scene.damageTypes && scene.damageTypes.length > 0 && (
+          <div>
+            <p className="text-slate-400 text-sm mb-2">피해 내용</p>
+            <div className="flex flex-col gap-1">
+              {scene.damageTypes.map((label) => (
+                <p key={label} className="text-slate-300 text-sm">
+                  ☑ {label}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
         <Button
           className="self-center"
           onClick={() => selected && onAdvance(scene.goTo)}

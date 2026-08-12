@@ -15,7 +15,7 @@ function FakeSiteSceneView({ scene, onAdvance }: Props) {
   return (
     <Screen>
       <div className="flex flex-col gap-6">
-        <p className="text-amber-400 text-xs">oo-shopping-notice.com</p>
+        <p className="text-amber-400 text-xs">{scene.domain}</p>
         <p className="text-slate-100 font-bold text-lg">{scene.headline}</p>
 
         <div className="flex flex-col gap-4">
