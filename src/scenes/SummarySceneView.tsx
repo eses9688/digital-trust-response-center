@@ -1,25 +1,46 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { SummaryScene } from "../types/types";
+import type { Rank } from "../engine/types";
 import Screen from "../components/Screen";
 import Button from "../components/Button";
 
 type Props = {
   scene: SummaryScene;
+  rank?: Rank;
+  evidenceFound?: number;
+  evidenceTotal?: number;
 };
 
-function SummarySceneView({ scene }: Props) {
+const rankStyles: Record<Rank, string> = {
+  S: "border-amber-500 bg-amber-950/30 text-amber-300",
+  A: "border-cyan-500 bg-cyan-950/30 text-cyan-300",
+  B: "border-slate-500 bg-slate-800/60 text-slate-300",
+  C: "border-red-700 bg-red-950/30 text-red-300",
+};
+
+function SummarySceneView({ scene, rank, evidenceFound, evidenceTotal }: Props) {
   const navigate = useNavigate();
   const [showHypothetical, setShowHypothetical] = useState(false);
-  const [showFootprints, setShowFootprints] = useState(false);
-  const footprintTrail = scene.footprintTrail
-    ? [...scene.footprintTrail].sort((a, b) => a.atMinute - b.atMinute)
-    : [];
 
   return (
     <Screen>
       <div className="flex flex-col gap-6">
-        <p className="text-cyan-400 font-bold text-lg">✔ 신고 완료</p>
+        <div className="flex items-center justify-between">
+          <p className="text-cyan-400 font-bold text-lg">✔ 신고 완료</p>
+          {rank && (
+            <div
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${rankStyles[rank]}`}
+            >
+              <span className="font-bold text-lg leading-none">{rank}</span>
+              {evidenceFound !== undefined && evidenceTotal !== undefined && (
+                <span className="text-xs opacity-80">
+                  증거 {evidenceFound}/{evidenceTotal}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
         <p className="text-slate-100 whitespace-pre-line">
           {scene.incidentSummary}
         </p>
@@ -62,24 +83,6 @@ function SummarySceneView({ scene }: Props) {
                 {scene.hypotheticalDamage.map((line, i) => (
                   <p key={i} className="text-slate-300 text-sm">
                     • {line}
-                  </p>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {footprintTrail.length > 0 && (
-          <div className="flex flex-col gap-3">
-            <Button variant="ghost" onClick={() => setShowFootprints((v) => !v)}>
-              {showFootprints ? "닫기" : "내 행동 기록 보기"}
-            </Button>
-            {showFootprints && (
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col gap-2">
-                <p className="text-slate-400 text-sm mb-1">당신의 디지털 흔적</p>
-                {footprintTrail.map((entry) => (
-                  <p key={entry.id} className="text-slate-300 text-sm">
-                    {entry.atMinute}분 — {entry.label}
                   </p>
                 ))}
               </div>

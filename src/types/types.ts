@@ -4,7 +4,6 @@ import type {
   EvidenceDef,
   EndingDef,
   TimeEventDef,
-  FootprintEntry,
 } from "../engine/types";
 
 export type Channel = "email" | "sms" | "call" | "sns" | "app";
@@ -141,7 +140,6 @@ export type SummaryScene = {
   whyFooled: string[];
   tips: string[];
   hypotheticalDamage?: string[];
-  footprintTrail?: FootprintEntry[];
 };
 
 export type ChoiceOption = {
@@ -165,6 +163,7 @@ export type InstallScene = {
   kind: "install";
   appName: string;
   goTo: string;
+  effects?: Effects;
 };
 
 export type QuizOption = {
@@ -225,6 +224,14 @@ export type Episode = {
   endings?: EndingDef[];
   timeEvents?: TimeEventDef[];
   hubSceneId?: string;
+  learningCard?: LearningCard;
+};
+
+export type LearningCard = {
+  cardTitle: string;
+  whyDangerous: string[];
+  prevention: string[];
+  reference: string;
 };
 
 export type EpisodeCatalogEntry = {

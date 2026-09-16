@@ -10,6 +10,7 @@ const episode1: Episode = {
     personalInfoLeaked: false,
     moneyLost: 0,
     reported: false,
+    damaged: false,
   },
   evidence: [
     { id: "suspicious_sender", label: "발신자 주소가 공식 도메인과 다름" },
@@ -213,7 +214,10 @@ const episode1: Episode = {
       ],
       submitGoTo: "damage",
       submitEffects: {
-        stateChanges: [{ type: "set", key: "personalInfoLeaked", value: true }],
+        stateChanges: [
+          { type: "set", key: "personalInfoLeaked", value: true },
+          { type: "set", key: "damaged", value: true },
+        ],
         footprint: { id: "leaked-info", label: "개인정보 입력 (notdemall-notice.com)" },
       },
       backGoTo: "reading",
@@ -328,6 +332,20 @@ const episode1: Episode = {
       ],
     },
   ],
+  learningCard: {
+    cardTitle: "이벤트 당첨 피싱 메일",
+    whyDangerous: [
+      "공짜 경품이라는 심리를 이용",
+      "실제 쇼핑몰과 비슷한 발신자 주소",
+      "정보 미입력 시 취소된다는 긴급성 강조",
+    ],
+    prevention: [
+      "발신자 주소 꼼꼼히 확인",
+      "공식 앱/사이트로 직접 접속해 확인",
+      "의심 메일은 열지 말고 신고",
+    ],
+    reference: "출처: 한국인터넷진흥원(KISA) 보호나라, 경찰청 사이버수사국",
+  },
 };
 
 export default episode1;

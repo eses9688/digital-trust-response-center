@@ -4,6 +4,15 @@ const episode2: Episode = {
   id: "ep2",
   title: "택배 배송조회 스미싱",
   startSceneId: "sms-arrive",
+  initialState: {
+    damaged: false,
+    reported: false,
+  },
+  evidence: [
+    { id: "wrong_sender_number", label: "발신번호가 공식 택배사 안내와 다름" },
+    { id: "fake_url", label: "정식 도메인이 아닌 배송조회 링크" },
+    { id: "personal_info_request", label: "과도한 개인정보(주소·전화번호) 요구" },
+  ],
   scenes: [
     {
       id: "sms-arrive",
@@ -16,10 +25,26 @@ const episode2: Episode = {
           value:
             "[배송 안내]\n고객님의 택배가 배송 예정입니다.\n주소 정보 오류로 인해 배송이 보류되었습니다.\n아래 링크에서 배송지를 확인해주세요.\n\n",
         },
-        { type: "link", value: "http://delivery-check.kr", goTo: "fakesite" },
+        {
+          type: "link",
+          value: "http://delivery-check.kr",
+          goTo: "fakesite",
+          effects: {
+            evidenceGained: ["fake_url", "personal_info_request"],
+            footprint: { id: "visited-fakesite", label: "가짜 사이트 방문 (delivery-check.kr)" },
+          },
+        },
       ],
       options: [
-        { id: "check-sender", text: "보낸 번호 확인", goTo: "sender-check" },
+        {
+          id: "check-sender",
+          text: "보낸 번호 확인",
+          goTo: "sender-check",
+          effects: {
+            evidenceGained: ["wrong_sender_number"],
+            footprint: { id: "checked-sender", label: "발신번호 확인" },
+          },
+        },
         { id: "delete", text: "삭제하기", goTo: "dtrc-safe" },
       ],
     },
@@ -50,6 +75,10 @@ const episode2: Episode = {
         { label: "주소", placeholder: "예: 서울시 ..." },
       ],
       submitGoTo: "damage",
+      submitEffects: {
+        stateChanges: [{ type: "set", key: "damaged", value: true }],
+        footprint: { id: "submitted-info", label: "개인정보 입력 (delivery-check.kr)" },
+      },
       backGoTo: "sms-arrive",
     },
     {
@@ -110,7 +139,11 @@ const episode2: Episode = {
         { label: "피싱", description: "이메일을 이용해 개인정보나 금전을 노리는 사기" },
         { label: "중고거래 사기", description: "중고거래 플랫폼에서 발생하는 사기" },
       ],
-      goTo: "summary-safe",
+      goTo: "ending",
+      reportEffects: {
+        stateChanges: [{ type: "set", key: "reported", value: true }],
+        footprint: { id: "reported", label: "DTRC에 신고함" },
+      },
     },
     {
       id: "dtrc-recovered",
@@ -122,11 +155,26 @@ const episode2: Episode = {
         { label: "중고거래 사기", description: "중고거래 플랫폼에서 발생하는 사기" },
       ],
       damageTypes: ["개인정보 입력", "의심 링크 접속"],
-      goTo: "summary-recovered",
+      goTo: "ending",
+      reportEffects: {
+        stateChanges: [{ type: "set", key: "reported", value: true }],
+        footprint: { id: "reported", label: "DTRC에 신고함" },
+      },
     },
     {
-      id: "summary-safe",
-      kind: "summary",
+      id: "ending",
+      kind: "ending",
+    },
+  ],
+  endings: [
+    {
+      id: "safe",
+      title: "안전한 대응",
+      priority: 1,
+      conditions: [
+        { key: "damaged", op: "eq", value: false },
+        { key: "reported", op: "eq", value: true },
+      ],
       incidentSummary:
         '이번 사고는 "택배 배송 지연"을 미끼로 한\n스미싱 문자였습니다.',
       whyFooled: [
@@ -146,8 +194,13 @@ const episode2: Episode = {
       ],
     },
     {
-      id: "summary-recovered",
-      kind: "summary",
+      id: "recovered",
+      title: "피해 복구 대응",
+      priority: 2,
+      conditions: [
+        { key: "damaged", op: "eq", value: true },
+        { key: "reported", op: "eq", value: true },
+      ],
       incidentSummary:
         '이번 사고는 "택배 배송 지연"을 미끼로 한\n스미싱 문자였습니다.',
       whyFooled: [
@@ -162,6 +215,20 @@ const episode2: Episode = {
       ],
     },
   ],
+  learningCard: {
+    cardTitle: "택배 배송조회 스미싱",
+    whyDangerous: [
+      "실제 택배를 기다리는 심리를 이용",
+      "배송 보류라는 긴급성 강조",
+      "가짜 사이트로 유도",
+    ],
+    prevention: [
+      "문자 속 링크는 클릭 전 주소부터 확인",
+      "택배사는 문자 링크로 개인정보를 요구하지 않음",
+      "의심스러운 문자는 신고",
+    ],
+    reference: "출처: 한국인터넷진흥원(KISA) 보호나라, 경찰청 사이버수사국",
+  },
 };
 
 export default episode2;

@@ -5,8 +5,9 @@ import episode2 from "../data/episodes/episode2";
 import episode3 from "../data/episodes/episode3";
 import type { Episode, Scene, SummaryScene as SummarySceneType } from "../types/types";
 import type { Effects, FootprintEntry } from "../engine/types";
-import { applyEffects, checkTimeEvent, resolveEnding } from "../engine/gameEngine";
+import { applyEffects, checkTimeEvent, computeRank, resolveEnding } from "../engine/gameEngine";
 import { episodeCatalog } from "../data/episodeCatalog";
+import { saveCollectedCard } from "../storage/storage";
 import DesktopSceneView from "../scenes/DesktopSceneView";
 import InboxSceneView from "../scenes/InboxSceneView";
 import ReadingSceneView from "../scenes/ReadingSceneView";
@@ -73,6 +74,8 @@ function findEffects(scene: Scene, nextSceneId: string): Effects | undefined {
       return nextSceneId === scene.goTo ? scene.reportEffects : undefined;
     case "damage":
       return nextSceneId === scene.goTo ? scene.goToEffects : undefined;
+    case "install":
+      return nextSceneId === scene.goTo ? scene.effects : undefined;
     case "browser": {
       const prefix = `${scene.id}::`;
       if (!nextSceneId.startsWith(prefix)) return undefined;
@@ -151,10 +154,18 @@ function EpisodePlayer() {
   const [showEvidencePanel, setShowEvidencePanel] = useState(false);
   const [notificationShown, setNotificationShown] = useState(false);
 
+  const currentScene = episode?.scenes.find((s) => s.id === playerState.currentSceneId);
+
   useEffect(() => {
     const timer = setTimeout(() => setShowIntro(false), INTRO_DURATION_MS);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (episode && currentScene?.kind === "ending") {
+      saveCollectedCard(episode.id);
+    }
+  }, [episode, currentScene]);
 
   if (!episode) {
     return (
@@ -187,7 +198,7 @@ function EpisodePlayer() {
     );
   }
 
-  const scene = episode.scenes.find((s) => s.id === playerState.currentSceneId);
+  const scene = currentScene;
 
   if (!scene) {
     return (
@@ -287,9 +298,24 @@ function EpisodePlayer() {
         whyFooledLabel: ending.whyFooledLabel,
         whyFooled: ending.whyFooled,
         tips: ending.tips,
-        footprintTrail: Array.from(playerState.footprints.values()),
+        hypotheticalDamage: ending.hypotheticalDamage,
       };
-      sceneElement = <SummarySceneView scene={summaryScene} />;
+      const evidenceTotal = episode.evidence?.length ?? 0;
+      const evidenceFound = playerState.evidence.size;
+      const rank = computeRank({
+        evidenceFound,
+        evidenceTotal,
+        reported: playerState.gameState.reported === true,
+        damaged: playerState.gameState.damaged === true,
+      });
+      sceneElement = (
+        <SummarySceneView
+          scene={summaryScene}
+          rank={rank}
+          evidenceFound={evidenceTotal > 0 ? evidenceFound : undefined}
+          evidenceTotal={evidenceTotal > 0 ? evidenceTotal : undefined}
+        />
+      );
       break;
     }
   }

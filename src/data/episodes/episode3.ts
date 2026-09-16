@@ -4,6 +4,16 @@ const episode3: Episode = {
   id: "ep3",
   title: "건강검진 결과 스미싱",
   startSceneId: "sms-arrive",
+  initialState: {
+    damaged: false,
+    reported: false,
+  },
+  evidence: [
+    { id: "wrong_org_number", label: "발신기관 번호가 공식 안내와 다름" },
+    { id: "fake_health_url", label: "정식 도메인이 아닌 검진결과 링크" },
+    { id: "unknown_apk_warning", label: "출처를 알 수 없는 앱(APK) 설치 유도" },
+    { id: "excessive_permissions", label: "전화·문자·주소록 등 과도한 권한 요구" },
+  ],
   scenes: [
     {
       id: "sms-arrive",
@@ -16,10 +26,26 @@ const episode3: Episode = {
           value:
             "[건강검진센터]\n귀하의 건강검진 결과가 등록되었습니다.\n결과 확인을 위해 아래 링크를 이용해주세요.\n\n",
         },
-        { type: "link", value: "http://health-result.kr", goTo: "fakesite" },
+        {
+          type: "link",
+          value: "http://health-result.kr",
+          goTo: "fakesite",
+          effects: {
+            evidenceGained: ["fake_health_url"],
+            footprint: { id: "visited-fakesite", label: "가짜 사이트 방문 (health-result.kr)" },
+          },
+        },
       ],
       options: [
-        { id: "check-org", text: "기관 확인", goTo: "org-check" },
+        {
+          id: "check-org",
+          text: "기관 확인",
+          goTo: "org-check",
+          effects: {
+            evidenceGained: ["wrong_org_number"],
+            footprint: { id: "checked-org", label: "발신기관 확인" },
+          },
+        },
         { id: "delete", text: "삭제", goTo: "dtrc-safe" },
       ],
     },
@@ -63,6 +89,10 @@ const episode3: Episode = {
           type: "link",
           value: "[건강검진 앱 설치 링크]",
           goTo: "apk-install-prompt",
+          effects: {
+            evidenceGained: ["unknown_apk_warning"],
+            footprint: { id: "checked-apk-link", label: "앱 설치 링크 확인" },
+          },
         },
       ],
       options: [
@@ -96,8 +126,34 @@ const episode3: Episode = {
       kind: "choice",
       channel: "app",
       sender: "앱 권한 요청",
-      body: [{ type: "text", value: "전화\n문자\n주소록\n\n허용하시겠습니까?" }],
-      options: [{ id: "allow", text: "허용", goTo: "damage" }],
+      body: [
+        {
+          type: "text",
+          value:
+            "전화\n문자\n주소록\n\n허용하시겠습니까?\n\n(허용하지 않으면 앱이 정상 동작하지 않을 수 있습니다.)",
+          },
+      ],
+      options: [
+        {
+          id: "allow",
+          text: "허용",
+          goTo: "damage",
+          effects: {
+            evidenceGained: ["excessive_permissions"],
+            stateChanges: [{ type: "set", key: "damaged", value: true }],
+            footprint: { id: "granted-permission", label: "앱 권한 허용" },
+          },
+        },
+        {
+          id: "deny",
+          text: "거부",
+          goTo: "dtrc-safe",
+          effects: {
+            evidenceGained: ["excessive_permissions"],
+            footprint: { id: "denied-permission", label: "앱 권한 거부" },
+          },
+        },
+      ],
     },
     {
       id: "damage",
@@ -162,7 +218,11 @@ const episode3: Episode = {
         { label: "피싱", description: "이메일을 이용해 개인정보나 금전을 노리는 사기" },
         { label: "중고거래 사기", description: "중고거래 플랫폼에서 발생하는 사기" },
       ],
-      goTo: "summary-safe",
+      goTo: "ending",
+      reportEffects: {
+        stateChanges: [{ type: "set", key: "reported", value: true }],
+        footprint: { id: "reported", label: "DTRC에 신고함" },
+      },
     },
     {
       id: "dtrc-recovered",
@@ -174,11 +234,26 @@ const episode3: Episode = {
         { label: "중고거래 사기", description: "중고거래 플랫폼에서 발생하는 사기" },
       ],
       damageTypes: ["악성 앱 설치", "개인정보 유출"],
-      goTo: "summary-recovered",
+      goTo: "ending",
+      reportEffects: {
+        stateChanges: [{ type: "set", key: "reported", value: true }],
+        footprint: { id: "reported", label: "DTRC에 신고함" },
+      },
     },
     {
-      id: "summary-safe",
-      kind: "summary",
+      id: "ending",
+      kind: "ending",
+    },
+  ],
+  endings: [
+    {
+      id: "safe",
+      title: "안전한 대응",
+      priority: 1,
+      conditions: [
+        { key: "damaged", op: "eq", value: false },
+        { key: "reported", op: "eq", value: true },
+      ],
       incidentSummary: "범인은 당신의 건강 걱정을 이용했습니다.",
       whyFooled: [
         "건강검진기관을 사칭",
@@ -197,8 +272,13 @@ const episode3: Episode = {
       ],
     },
     {
-      id: "summary-recovered",
-      kind: "summary",
+      id: "recovered",
+      title: "피해 복구 대응",
+      priority: 2,
+      conditions: [
+        { key: "damaged", op: "eq", value: true },
+        { key: "reported", op: "eq", value: true },
+      ],
       incidentSummary: "범인은 당신의 건강 걱정을 이용했습니다.",
       whyFooled: [
         "건강검진기관을 사칭",
@@ -212,6 +292,20 @@ const episode3: Episode = {
       ],
     },
   ],
+  learningCard: {
+    cardTitle: "건강검진 결과 스미싱",
+    whyDangerous: [
+      "건강검진기관을 사칭",
+      "결과가 궁금한 불안 심리를 이용",
+      "출처 불명의 앱 설치를 유도",
+    ],
+    prevention: [
+      "기관은 문자 링크로 결과를 제공하지 않음",
+      "출처 불명의 앱 설치 금지",
+      "앱 설치 전 요청 권한 확인",
+    ],
+    reference: "출처: 한국인터넷진흥원(KISA) 보호나라, 경찰청 사이버수사국",
+  },
 };
 
 export default episode3;

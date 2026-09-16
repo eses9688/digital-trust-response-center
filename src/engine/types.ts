@@ -37,7 +37,10 @@ export type EndingDef = {
   whyFooledLabel?: string;
   whyFooled: string[];
   tips: string[];
+  hypotheticalDamage?: string[];
 };
+
+export type Rank = "S" | "A" | "B" | "C";
 
 export type TimeEventDef = {
   id: string;

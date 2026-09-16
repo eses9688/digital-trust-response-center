@@ -33,7 +33,13 @@ function Dashboard() {
   return (
     <Screen>
       <div className="flex flex-col gap-10">
-        <div className="text-center">
+        <div className="text-center relative">
+          <button
+            onClick={() => navigate("/collection")}
+            className="absolute right-0 top-0 text-xs px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:border-slate-600 cursor-pointer"
+          >
+            📖 도감
+          </button>
           <p className="text-slate-100 font-bold text-2xl tracking-widest">DTRC</p>
           <p className="text-cyan-400 text-sm mt-1">Digital Trust Response Center</p>
           <p className="text-slate-500 text-sm mt-4">

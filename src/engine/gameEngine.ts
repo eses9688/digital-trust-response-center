@@ -6,6 +6,7 @@ import type {
   EndingCondition,
   TimeEventDef,
   FootprintEntry,
+  Rank,
 } from "./types";
 
 export type EngineSnapshot = {
@@ -91,6 +92,22 @@ export function resolveEnding(
     }
   }
   return sorted[sorted.length - 1];
+}
+
+export function computeRank(params: {
+  evidenceFound: number;
+  evidenceTotal: number;
+  reported: boolean;
+  damaged: boolean;
+}): Rank {
+  const { evidenceFound, evidenceTotal, reported, damaged } = params;
+  if (!reported) return "C";
+  if (damaged) return "B";
+  if (evidenceTotal === 0) return "A";
+  const ratio = evidenceFound / evidenceTotal;
+  if (ratio >= 0.8) return "S";
+  if (ratio >= 0.5) return "A";
+  return "B";
 }
 
 export function checkTimeEvent(
